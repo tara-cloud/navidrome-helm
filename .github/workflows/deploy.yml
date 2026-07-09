@@ -19,6 +19,19 @@ jobs:
           sudo chown $(id -u):$(id -g) ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Adopt existing resources for Helm
+        run: |
+          kubectl create namespace navidrome --dry-run=client -o yaml | kubectl apply -f -
+          for resource in deployment service pvc configmap secret; do
+            kubectl get $resource -n navidrome -o name 2>/dev/null | while read name; do
+              kubectl label $name -n navidrome app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+              kubectl annotate $name -n navidrome \
+                meta.helm.sh/release-name=navidrome \
+                meta.helm.sh/release-namespace=navidrome \
+                --overwrite 2>/dev/null || true
+            done
+          done
+
       - name: Helm upgrade
         run: |
           helm upgrade --install navidrome ./helm/navidrome \
