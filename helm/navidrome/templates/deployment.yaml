@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: navidrome
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: navidrome
+  template:
+    metadata:
+      labels:
+        app: navidrome
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      containers:
+        - name: navidrome
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 4533
+          env:
+            - name: ND_MUSICFOLDER
+              value: {{ .Values.config.musicFolder }}
+            - name: ND_DATAFOLDER
+              value: {{ .Values.config.dataFolder }}
+          volumeMounts:
+            - mountPath: {{ .Values.config.dataFolder }}
+              name: data
+            - mountPath: {{ .Values.config.musicFolder }}
+              name: music
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: navidrome-data
+        - name: music
+          hostPath:
+            path: {{ .Values.storage.music.hostPath }}
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: navidrome
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: navidrome
+  ports:
+    - name: http
+      port: 4533
+      targetPort: 4533

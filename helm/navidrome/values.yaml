@@ -1,0 +1,27 @@
+replicaCount: 1
+
+image:
+  repository: deluan/navidrome
+  tag: latest
+  pullPolicy: Always
+
+nodeSelector:
+  tara/node-role: pi
+
+config:
+  musicFolder: /music
+  dataFolder: /data
+
+storage:
+  data:
+    storageClass: nfs-hdd
+    size: 5Gi
+  music:
+    hostPath: /HDD/Media/Music
+
+ingress:
+  enabled: false
+  host: navidrome.tara-cloud.org
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
