@@ -38,6 +38,9 @@ jobs:
             done
           done
 
+      - name: Delete existing deployment for clean install
+        run: kubectl delete deployment navidrome -n navidrome --ignore-not-found=true
+
       - name: Helm upgrade
         run: |
           helm upgrade --install navidrome ./helm/navidrome \
