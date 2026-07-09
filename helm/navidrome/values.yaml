@@ -9,7 +9,7 @@ nodeSelector:
   tara/node-role: pi
 
 config:
-  musicFolder: /music
+  musicFolder: /data/music
   dataFolder: /data
 
 storage:

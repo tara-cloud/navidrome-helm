@@ -29,16 +29,10 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.config.dataFolder }}
               name: data
-            - mountPath: {{ .Values.config.musicFolder }}
-              name: music
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: navidrome-data-nfs
-        - name: music
-          hostPath:
-            path: {{ .Values.storage.music.hostPath }}
-            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
