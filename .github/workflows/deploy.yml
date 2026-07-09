@@ -1,0 +1,36 @@
+name: Deploy Navidrome
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+          sudo chown $(id -u):$(id -g) ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install navidrome ./helm/navidrome \
+            --namespace navidrome \
+            --create-namespace \
+            --set oidc.clientId="${{ secrets.NAVIDROME_OIDC_CLIENT_ID }}" \
+            --set oidc.clientSecret="${{ secrets.NAVIDROME_OIDC_CLIENT_SECRET }}" \
+            --wait \
+            --timeout 3m
+
+      - name: Check pod status
+        if: always()
+        run: |
+          kubectl get pods -n navidrome
+          kubectl logs -n navidrome -l app=navidrome --tail=30 || true
