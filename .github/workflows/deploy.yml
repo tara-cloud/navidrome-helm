@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    env:
+      KUBECONFIG: /home/pi/.kube/config
 
     steps:
       - name: Checkout
@@ -14,14 +16,19 @@ jobs:
 
       - name: Setup kubeconfig
         run: |
-          mkdir -p ~/.kube
-          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-          sudo chown $(id -u):$(id -g) ~/.kube/config
-          chmod 600 ~/.kube/config
+          mkdir -p /home/pi/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml /home/pi/.kube/config
+          sudo chown pi:pi /home/pi/.kube/config
+          chmod 600 /home/pi/.kube/config
 
       - name: Adopt existing resources for Helm
         run: |
           kubectl create namespace navidrome --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace navidrome app.kubernetes.io/managed-by=Helm --overwrite
+          kubectl annotate namespace navidrome \
+            meta.helm.sh/release-name=navidrome \
+            meta.helm.sh/release-namespace=navidrome \
+            --overwrite
           for resource in deployment service pvc configmap secret; do
             kubectl get $resource -n navidrome -o name 2>/dev/null | while read name; do
               kubectl label $name -n navidrome app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
