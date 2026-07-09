@@ -26,26 +26,6 @@ spec:
               value: {{ .Values.config.musicFolder }}
             - name: ND_DATAFOLDER
               value: {{ .Values.config.dataFolder }}
-            {{- if .Values.oidc.enabled }}
-            - name: ND_OIDC_ENABLED
-              value: "true"
-            - name: ND_OIDC_DISCOVERYURL
-              value: {{ .Values.oidc.discoveryUrl }}
-            - name: ND_OIDC_REDIRECTURL
-              value: {{ .Values.oidc.redirectUrl }}
-            - name: ND_OIDC_SKIPUSERINFO
-              value: {{ .Values.oidc.skipUserInfo | quote }}
-            - name: ND_OIDC_CLIENTID
-              valueFrom:
-                secretKeyRef:
-                  name: navidrome-oidc
-                  key: clientId
-            - name: ND_OIDC_CLIENTSECRET
-              valueFrom:
-                secretKeyRef:
-                  name: navidrome-oidc
-                  key: clientSecret
-            {{- end }}
           volumeMounts:
             - mountPath: {{ .Values.config.dataFolder }}
               name: data
@@ -54,7 +34,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: navidrome-data
+            claimName: navidrome-data-nfs
         - name: music
           hostPath:
             path: {{ .Values.storage.music.hostPath }}
