@@ -7,8 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    env:
-      KUBECONFIG: /home/pi/.kube/config
 
     steps:
       - name: Checkout
@@ -16,10 +14,11 @@ jobs:
 
       - name: Setup kubeconfig
         run: |
-          mkdir -p /home/pi/.kube
-          sudo cp /etc/rancher/k3s/k3s.yaml /home/pi/.kube/config
-          sudo chown pi:pi /home/pi/.kube/config
-          chmod 600 /home/pi/.kube/config
+          mkdir -p $HOME/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
 
       - name: Adopt existing resources for Helm
         run: |
